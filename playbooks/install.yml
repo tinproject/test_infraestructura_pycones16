@@ -17,6 +17,7 @@
     sentry_admin_pass: 'password'
     # step enabler:
     prepare_ansible: yes
+    add_repos: yes
     prepare_infra: yes
     prepare_sentry: yes
     install_sentry: yes

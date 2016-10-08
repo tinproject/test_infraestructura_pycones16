@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# This script is used to run vagrant provision from pycharm
+
 set -e
 
 # Activate ansible virtual environment

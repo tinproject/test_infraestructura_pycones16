@@ -21,5 +21,5 @@ date
 # wait a minute for the services to start
 sleep(60)
 
-# Run test again -> Should pass GREE
+# Run test again -> Should pass GREEN
 testinfra --connection=ssh --host=default --ssh-config=.vagrant/ssh-config --tb=no tests/test_sentry_infra.py

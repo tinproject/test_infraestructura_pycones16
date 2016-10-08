@@ -1,0 +1,13 @@
+- include: postgresql_repo.yml
+- include: dotdeb_repo.yml
+- include: nginx_stable_repo.yml
+- name: Install apps prerequisites
+  apt:
+    update_cache: yes
+    state: present
+    name: "{{item}}"
+  with_items:
+    - postgresql-9.6
+    - redis-server
+    - nginx
+  when: add_repos

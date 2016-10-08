@@ -1,0 +1,81 @@
+
+# Install prerequisites packages for sentry
+- name: Install sentry rerequisites
+  apt:
+    state: present
+    name: "{{item}}"
+  with_items:
+    - python-setuptools
+    - python-pip
+    - python-dev
+    - libxslt1-dev
+    - gcc
+    - libffi-dev
+    - libjpeg-dev
+    - libxml2-dev
+    - libxslt-dev
+    - libyaml-dev
+    - clang
+
+# Create system user for sentry
+- name: Create sentry user
+  user:
+    name: "{{sentry_user}}"
+    createhome: no
+    state: present
+    system: yes
+    shell: /sbin/nologin
+- name: Create sentry folder
+  file:
+    path: "{{sentry_install_path}}"
+    state: directory
+    owner: "{{sentry_user}}"
+    group: "{{sentry_group}}"
+    mode: 0755
+
+# Prepare sentry config files
+- name: Create sentry cofig folder
+  file:
+    path: "{{sentry_config_path}}"
+    state: directory
+    owner: "root"
+    group: "{{sentry_group}}"
+    mode: 0755
+- name: Set sentry config files
+  template:
+    src: "templates/{{item}}.j2"
+    dest: "{{sentry_config_path}}/{{item}}"
+    owner: "root"
+    group: "{{sentry_group}}"
+    mode: 0640
+  with_items:
+    - config.yml
+    - sentry.conf.py
+  notify:
+    - restart sentry services
+
+# Create dummy nginx conf for sentry
+- name: Set sentry nginx config
+  template:
+    src: "templates/nginx.conf.j2"
+    dest: "/etc/nginx/nginx.conf"
+  notify:
+    - restart nginx
+
+# Create db user and database for sentry
+- name: Create postgresql sentry user
+  become: yes
+  become_user: postgres
+  postgresql_user:
+    name: "{{sentry_db_user}}"
+    password: "{{sentry_db_pass}}"
+    role_attr_flags: LOGIN
+    state: present
+- name: Create postgresql sentry database
+  become: yes
+  become_user: postgres
+  postgresql_db:
+    name: "{{sentry_db_name}}"
+    owner: "{{sentry_db_user}}"
+    encoding: "utf-8"
+    state: present

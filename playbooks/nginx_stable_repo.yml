@@ -1,0 +1,21 @@
+---
+- name: Install Nginx repository key
+  apt_key:
+    url: http://nginx.org/keys/nginx_signing.key
+    state: present
+
+- name: Install Nginx repositry.
+  apt_repository:
+    repo: "deb http://nginx.org/packages/debian/ jessie nginx"
+    filename: "nginx"
+    mode : 0644
+    state: present
+    update_cache: no
+
+- name: Install Nginx source repositry.
+  apt_repository:
+    repo: "deb-src http://nginx.org/packages/debian/ jessie nginx"
+    filename: "nginx"
+    mode : 0644
+    state: present
+    update_cache: no

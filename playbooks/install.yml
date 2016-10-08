@@ -1,0 +1,77 @@
+---
+- name: Install prerequisites for sentry
+  hosts: all
+  become: yes
+  become_user: root
+  vars:
+    sentry_install_path: "/srv/sentry"
+    sentry_config_path: "/etc/sentry"
+    sentry_user: sentry
+    sentry_group: sentry
+    sentry_db_name: sentry
+    sentry_db_user: sentry
+    sentry_db_pass: sentry
+    sentry_db_host: 127.0.0.1
+    sentry_db_port: 5432
+    sentry_admin_mail: 'prueba@sentry.local'
+    sentry_admin_pass: 'password'
+    # step enabler:
+    prepare_ansible: yes
+    prepare_infra: yes
+    prepare_sentry: yes
+    install_sentry: yes
+  tasks:
+    # Prepare debian image for ansible
+    - name: Install Ansible/venv rerequisites
+      apt:
+        state: present
+        name: "{{item}}"
+      with_items:
+        - python-pip
+        - python-virtualenv
+        - libpq-dev
+        - python-psycopg2
+        - python-pexpect
+        - open-vm-tools
+      when: prepare_ansible
+    - name: Update default python packages for Ansible
+      pip:
+        name: "{{item}}"
+        state: latest
+      with_items:
+        - pip
+        - pexpect
+      when: prepare_ansible
+
+    - include: prepare_infra.yml
+      when: prepare_infra
+    - include: prepare_sentry.yml
+      when: prepare_sentry
+    - include: install_sentry.yml
+      when: instal_sentry
+
+    # Ensure sentry services are up!
+    - meta: flush_handlers
+    - name: Enable and start sentry services
+      service:
+        name: "{{item}}"
+        state: started
+        enabled: yes
+      with_items:
+        - sentry-cron
+        - sentry-web
+        - sentry-worker
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: "nginx"
+        state: restarted
+    - name: restart sentry services
+      service:
+        name: "{{item}}"
+        state: restarted
+      with_items:
+        - sentry-cron
+        - sentry-web
+        - sentry-worker

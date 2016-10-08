@@ -1,0 +1,41 @@
+# Create virtualenv for sentry and install it
+- name: Create sentry virtualenv
+  become: yes
+  become_user: "{{sentry_user}}"
+  pip:
+    name: "{{item}}"
+    state: latest
+    virtualenv: "{{sentry_install_path}}"
+#        extra_args: " --no-cache-dir"
+  with_items:
+    - pip
+    - pytz
+    - sentry
+
+# Run sentry migrations, insert dummy superuser
+- name: Run sentry migrations
+  become: yes
+  become_user: "{{sentry_user}}"
+  expect:
+    command: "/bin/bash -c \"source /srv/sentry/bin/activate && SENTRY_CONF={{sentry_config_path}} sentry upgrade\""
+    chdir: /srv/sentry
+    timeout: 900
+    responses:
+      "Would you like to create a user account now?": "y"
+      "Email": "{{sentry_admin_mail}}"
+      "Password": "{{sentry_admin_pass}}"
+      "Repeat for confirmation": "{{sentry_admin_pass}}"
+      "Should this user be a superuser?": "y"
+
+# Install systemd units for sentry
+- name: Install sentry systemd services templates
+  template:
+    src: "templates/{{item}}.j2"
+    dest: "/etc/systemd/system/{{item}}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items:
+    - sentry-cron.service
+    - sentry-web.service
+    - sentry-worker.service

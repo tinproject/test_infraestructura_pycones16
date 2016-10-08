@@ -1,0 +1,14 @@
+---
+- name: Install PostgreSQL repository key
+  apt_key:
+    id: ACCC4CF8
+    url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+    state: present
+
+- name: Install PortgreSQL repositry.
+  apt_repository:
+    repo: "deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main"
+    filename: "pgdg"
+    mode : 0644
+    state: present
+    update_cache: no

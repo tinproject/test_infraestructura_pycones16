@@ -1,0 +1,15 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=Sentry Background Worker
+After=network.target
+
+[Service]
+Type=simple
+User={{sentry_user}}
+Group={{sentry_group}}
+WorkingDirectory={{sentry_install_path}}
+Environment=SENTRY_CONF={{sentry_config_path}}
+ExecStart={{sentry_install_path}}/bin/sentry run worker
+
+[Install]
+WantedBy=multi-user.target
